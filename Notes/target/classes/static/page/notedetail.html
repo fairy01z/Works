@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=yes" />
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://unpkg.com/@wangeditor/editor@latest/dist/css/style.css" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="../plugins/element-ui/index.css" />
+    <link type="text/css" rel="stylesheet" href="../styles/notedetail.css">
+    <style>
+
+    </style>
+</head>
+<style>
+
+
+</style>
+
+
+<body>
+
+<div id="notelist">
+
+    <el-form ref="noteForm" label-width="80px" :model="noteForm" size="small" label-position="center"  >
+        <el-form-item label="标题" prop="noteTitle" >
+            <el-input  auto-complete="off"   v-model="noteForm.noteTitle" ></el-input>
+
+        </el-form-item>
+        <el-form-item label="描述" prop="introduction"  width="1000px" >
+            <el-input  type="textarea" v-model="noteForm.introduction"
+                      placeholder="请输入内容"></el-input>
+        </el-form-item>
+
+    </el-form>
+
+        <el-button class="submit" size="mini" type="primary" @click="submitForm('noteForm')">
+            提交
+        </el-button>
+      <el-button class="goback" size="mini"  @click="goBack" >返回</el-button>
+
+</div>
+
+
+
+<div id="container">
+    <div id="toolbar-container" ></div>
+    <div id="editor-container"></div>
+</div>
+
+<script src="../js/Wangeditor.js"></script>
+<script src="https://unpkg.com/@wangeditor/editor@latest/dist/index.js"></script>
+<script src="../plugins/axios/axios.min.js"></script>
+<script type="text/javascript" src="../api/workplace.js"></script>
+<script type="text/javascript" src="../plugins/vue/vue.js"></script>
+<script type="text/javascript" src="../plugins/element-ui/index.js"></script>
+<script src="../js/request.js"></script>
+<script src="../api/notedetail.js"></script>
+<script>
+    const { createEditor, createToolbar } = window.wangEditor // 全局变量
+    //【注意】下面使用的 typescript 语法。如用 javascript 语法，把类型去掉即可。
+    // 编辑器配置
+    const editorConfig= {}
+    editorConfig.placeholder = '请输入内容'
+    editorConfig.onChange = (editor) => {
+        // 当编辑器选区、内容变化时，即触发
+        console.log('content', editor.children)
+        console.log('html', editor.getHtml())
+    }
+    // 工具栏配置
+    const toolbarConfig = {}
+
+    // 创建编辑器
+    let editor = createEditor({
+        selector: '#editor-container',
+        config: editorConfig,
+        mode: 'default' // 或 'simple' 参考下文
+    })
+    // 创建工具栏
+    const toolbar = createToolbar({
+        editor,
+        selector:'#toolbar-container',
+        config: toolbarConfig,
+        mode: 'default' // 或 'simple' 参考下文
+    })
+
+    new Vue({
+        el: '#notelist',
+        data() {
+            return {
+                userId: '',
+                noteForm: {
+                    id: '',
+                    noteTitle: '',
+                    noteMes: '',
+                    updateTime: '',
+                    introduction: ' ',
+                    actionType: '',
+                    userId:''
+                }
+            }
+        },
+        created() {
+            this.id=localStorage.getItem("noteId");
+            this.noteForm.userId = JSON.parse(localStorage.getItem('userInfo')).id
+            this.actionType = this.id ? 'edit' : 'add'
+          //  alert(this.id);
+            this.init()
+        },
+        methods: {
+            init: async function () {
+                if (localStorage.getItem('func') != 'add') {
+                    getNote(this.id).then(res => {
+                        console.log(res)
+                        if (String(res.code) === '1') {
+                            console.log(res.data)
+                            this.noteForm = res.data
+                            const html = this.noteForm.noteMes//.split(/\n/).map(line => `<p>${line}</p>`).join('\n')
+
+                            //  // 2. 设置 html
+                            editor.setHtml(html)
+                        } else {
+                            this.$message.error(res.msg || '操作失败')
+                        }
+                    })
+                }
+            },
+            goBack() {
+                window.location.href = "workplace.html"
+            },
+            submitForm(formName) {
+                this.noteForm.noteMes=editor.getHtml().replace(/<br>$/, "")
+
+                const params = {
+                    ...this.noteForm,
+                }
+                if (localStorage.getItem('func')=='add') {
+                    addNote(params).then(res => {
+                        if (res.code === 1) {
+                            this.$message.success('笔记提交成功！')
+                           // localStorage.setItem('func',null)
+                            this.goBack()
+                        } else {
+                            this.$message.error(res.msg || '操作失败')
+                        }
+                    }).catch(err => {
+                        this.$message.error('请求出错了：' + err)
+                    })
+                } else {
+                    editNote(params,this.id).then(res => {
+                        if (res.code === 1) {
+                            this.$message.success('笔记信息修改成功！')
+                            //this.goBack()
+                        } else {
+                            this.$message.error(res.msg || '操作失败')
+                        }
+                    }).catch(err => {
+                        this.$message.error('请求出错了：' + err)
+                    })
+                }
+            }
+        }
+    })
+</script>
+</body>
+</html>

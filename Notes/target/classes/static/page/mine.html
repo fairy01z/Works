@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh_CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云笔记系统</title>
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/common.css">
+    <link rel="stylesheet" href="../styles/mine.css">
+    <link rel="stylesheet" href="../styles/icon/iconfont.css" />
+    <!-- 引入样式 -->
+    <link type="text/css" rel="stylesheet" href="../plugins/element-ui/index.css" />
+    <script src="../plugins/axios/axios.min.js"></script>
+    <script src="../js/request.js"></script>
+    <script src="../js/validate.js"></script>
+    <script src="../api/mine.js"></script>
+    <script src="../js/index.js"></script>
+
+
+</head>
+<body>
+
+<div id="mineapp">
+    <el-row :gutter="30">
+        <el-col :span="12">
+            <div class="grid-content bg-purple  " :data="ruleForm">
+                <el-card class="box-card">
+                    <div slot="header" class="clearfix">
+                        <span>个人中心</span>
+                    </div>
+                    <div class="name-img">
+                        <el-avatar src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+                    </div>
+                    <div class="name-role">
+                        <span class="sender">Admin - {{ruleForm.username}}</span>
+                    </div>
+                    <div class="name-role">
+                        <span class="signature">{{ruleForm.geQ}}</span>
+                    </div>
+                    <div class="registe-info">
+                    </div>
+                    <el-divider></el-divider>
+                    <el-button  class="edit" type="primary" icon="el-icon-edit" circle @click="gotolink"></el-button>
+                    <div class="personal-relation">
+                        <div class="relation-item">用户名:<div style="float: right; padding-right:20px;">{{ruleForm.username}}</div></div>
+                    </div>
+                    <div class="personal-relation">
+                        <div class="relation-item">性别:  <div style="float: right; padding-right:20px;">{{ruleForm.sex}}</div></div>
+                    </div>
+                    <div class="personal-relation">
+                        <div class="relation-item">出生日期:  <div  style="float: right; padding-right:20px;">{{changeDate(ruleForm.birthDate)}}</div></div>
+                    </div>
+                    <div class="personal-relation">
+                        <div class="relation-item">手机号:  <div style="float: right; padding-right:20px;">{{ruleForm.phone}}</div></div>
+                    </div>
+
+                </el-card>
+            </div>
+        </el-col>
+
+        <el-col :span="11">
+            <el-carousel class="imag" indicator-position="outside" height="500px">
+                <el-carousel-item v-for="item in 4" :key="item">
+
+                </el-carousel-item>
+            </el-carousel>
+        </el-col>
+
+    </el-row>
+
+</div>
+    <script type="text/javascript" src="../plugins/vue/vue.js"></script>
+    <script type="text/javascript" src="../plugins/element-ui/index.js"></script>
+<script>
+    new Vue({
+        el: '#mineapp',
+        data(){
+            return{
+                id : '',
+                ruleForm:{
+                    'name':'',
+                    'sex':'',
+                    'birthDate':'',
+                    'geQ':'',
+                    'phone': '',
+                    username:'',
+                }
+
+            }
+        },
+            computed: {
+                rules () {
+                    return {
+                        //账号
+                        username: [
+                            {
+                                required: true, 'validator': checkUserName, trigger: 'blur'
+                            }
+                        ],
+                        //姓名
+                        name: [{ required: true, 'validator': checkName, 'trigger': 'blur' }],
+                        'phone': [{ 'required': true, 'validator': checkPhone, 'trigger': 'blur' }],
+                        'idNumber': [{ 'required': true, 'validator': validID, 'trigger': 'blur' }]
+                    }
+                }
+            },
+            created() {
+                if (localStorage.getItem("userInfo") != null) {
+                    this.id = JSON.parse(localStorage.getItem('userInfo')).id
+                }
+               // this.id = requestUrlParam('id')
+                this.init()
+            },
+            mounted() {
+            },
+            methods:{
+                async init () {
+                    const params = {
+                        page: this.page,
+                        pageSize: this.pageSize,
+                    }
+                    //获取个人资料
+                    queryEmployeeById(this.id).then(res => {
+                        console.log(res)
+                        if (String(res.code) === '1') {
+                            console.log(res.data)
+                            this.ruleForm = res.data
+                            this.ruleForm.sex = res.data.sex === '0' ? '女' : '男'
+                            // this.ruleForm.password = ''
+                        } else {
+                            this.$message.error(res.msg || '操作失败')
+                        }
+                    })
+
+                    //获取笔记列表
+                    await getNoteList(params).then(res => {
+                        if (String(res.code) === '1') {
+                            this.noteForm= res.data.records || []
+                            this.counts = res.data.total
+
+                        }
+                    }).catch(err => {
+                        this.$message.error('请求出错了：' + err)
+                    })
+                },
+                    handleSizeChange (val) {
+                        this.pageSize = val
+                        this.init()
+                    },
+                    handleCurrentChange (val) {
+                        this.page = val
+                        this.init()
+                    },
+                    gotolink(){
+                        window.location.href= 'mine_message.html'
+                    },
+                  changeDate:function(value) {
+                    // 获取单元格数据
+                    let data = parseInt(value)
+                    if(data == null) {
+                        return null
+                    }
+                    let date = new Date(data);
+                    let y = date.getFullYear();
+                    let MM = date.getMonth() + 1;
+                    MM = MM < 10 ? ('0' + MM) : MM;
+                    let d = date.getDate();
+                    d = d < 10 ? ('0' + d) : d;
+                    let h = date.getHours();
+                    h = h < 10 ? ('0' + h) : h;
+                    let m = date.getMinutes();
+                    m = m < 10 ? ('0' + m) : m;
+                    let s = date.getSeconds();
+                    s = s < 10 ? ('0' + s) : s;
+                    return y + '-' + MM + '-' + d;
+                }
+                }
+
+    }
+    )
+
+
+</script>
+</body>
+</html>

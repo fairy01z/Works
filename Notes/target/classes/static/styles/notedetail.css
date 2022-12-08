@@ -1,0 +1,59 @@
+html{
+    /*background-image: url("../images/login/login-background.png");*/
+    /*background-repeat: no-repeat;*/
+    /*background-size: cover;*/
+}
+#notelist{
+    width: 480px;
+    margin: 20px auto;
+    position: relative;
+}
+
+.box-card {
+    margin: 18px;
+    height:782px;
+    overflow: hidden;
+    white-space: nowrap;
+    border-radius: 0px;
+
+}
+
+.clearfix:before,
+.clearfix:after {
+    display: table;
+    content: "";
+    clear:both;
+}
+
+#container{
+    width: 1000px;
+    margin: 20px auto;
+    border: 1px solid  #cCC;
+    mso-border-shadow: yes;
+
+}
+
+#toolbar-container {
+    border-bottom: 1px solid #cCC;
+}
+#editor-container {
+    height: 380px;
+}
+
+.submit{
+    position: absolute;
+   right: 100px;
+    top: 597px;
+    z-index: 1;
+
+}
+
+.goback{
+    position: absolute;
+    right:0px;
+    top: 597px;
+    z-index: 1;
+
+}
+
+

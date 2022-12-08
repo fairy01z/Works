@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/common.css">
+    <link rel="stylesheet" href="../styles/mine.css">
+    <link rel="stylesheet" href="../styles/icon/iconfont.css" />
+    <!-- 引入样式 -->
+    <link type="text/css" rel="stylesheet" href="../plugins/element-ui/index.css" />
+    <script src="../plugins/axios/axios.min.js"></script>
+    <script src="../js/request.js"></script>
+    <script src="../js/validate.js"></script>
+    <script src="../api/mine_message.js"></script>
+
+</head>
+<body>
+
+<div id="messageapp">
+    <el-row :gutter="20" >
+    <el-col :span="15">
+    <div class="grid-content bg-purple">
+        <el-card class="box-card">
+            <div slot="header" class="clearfix">
+                <span>基本资料</span>
+            </div>
+            <div>
+                <el-form ref="dataForm" label-width="80px" :model="dataForm" size="small" label-position="center" :rules="mesRules" >
+                    <el-form-item label="用户名" prop="name">
+                        <el-input  auto-complete="off"   v-model="dataForm.username" ></el-input>
+                    </el-form-item>
+                    <el-form-item label="性别" prop="sex">
+                        <el-radio-group v-model="dataForm.sex">
+                            <el-radio label="男" name="type"></el-radio>
+                            <el-radio label="女" name="type"></el-radio>
+                            <el-radio label="隐藏" name="type"></el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="出生日期" prop="birthDate">
+                        <el-date-picker value-format="yyyy-MM-dd" type="date" placeholder="选择日期" v-model="dataForm.birthDate" style="width: 100%;"></el-date-picker>
+                    </el-form-item>
+                    <el-form-item label="手机号" prop="phone" >
+                        <el-input   v-model="dataForm.phone"></el-input>
+                    </el-form-item>
+                    <el-form-item label="个性签名" prop="geQ">
+                        <el-input  type="textarea"  v-model="dataForm.geQ"></el-input>
+                    </el-form-item>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button size="mini" type="primary" @click="submitForm('dataForm')">
+                       提交
+                    </el-button>
+                    <el-button size="mini" type="warning" @click="resetForm('dataForm')" >重置</el-button>
+                    <el-button size="mini"  @click="goBack" >返回</el-button>
+                </div>
+            </div>
+        </el-card>
+    </div>
+</el-col>
+    </el-row>
+</div>
+
+<script type="text/javascript" src="../plugins/vue/vue.js"></script>
+<script type="text/javascript" src="../plugins/element-ui/index.js"></script>
+<script>
+    new Vue({
+        el: '#messageapp',
+        data() {
+            return {
+                dataForm: {
+                    id:'',
+                    username: '',
+                    sex: '',
+                    birthDate:'',
+                    geQ: '',
+                    phone: '',
+
+                },
+
+                let :reg=/^(((13[0-9]{1})|(15[0-9]{1})|(16[0-9]{1})|(17[3-8]{1})|(18[0-9]{1})|(19[0-9]{1})|(14[5-7]{1}))+\d{8})$/,
+                //验证方法
+                let :validatorPhone = function (phone, value, callback) {
+                    if (value === '') {
+                        callback(new Error('手机号不能为空'))
+                    } else if (!reg.test(value)) {
+                        callback(new Error('手机号格式错误'))
+                    } else {
+                        callback()
+                    }
+                },
+
+                mesRules: {
+                    username: [{ required:true, message: '请输入用户名', trigger: 'blur' }],
+                    birthDate: [ {required: true, message: '请选择日期', trigger: 'change' }],
+                    geQ: [{ required: true, message: '请输入个性签名', trigger: 'blur' },
+                        { min: 0, max: 20, message: '长度在20以内', trigger: 'blur' }],
+                    phone: [{ required: true,validator: validatorPhone, trigger: 'blur' }],
+                    sex: [
+                        { required: true, message: '请选择性别', trigger: 'change' }
+                    ],
+                },
+            }
+        },
+
+
+        created() {
+            if (localStorage.getItem("userInfo") != null) {
+                this.id = JSON.parse(localStorage.getItem('userInfo')).id
+            }
+            this.init()
+        },
+       mounted() {
+        },
+        methods: {
+            async init () {
+                queryEmployeeById(this.id).then(res => {
+                    console.log(res)
+                    if (String(res.code) === '1') {
+                        console.log(res.data)
+                        this.dataForm = res.data
+                        this.dataForm.sex = res.data.sex === '0' ? '女' : '男'
+                        // this.ruleForm.password = ''
+                    } else {
+                        this.$message.error(res.msg || '操作失败')
+                    }
+                })
+            },
+            submitForm (formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                            const params = {
+                                ...this.dataForm,
+                                sex: this.dataForm.sex === '女' ? '0' : '1'
+
+                            }
+                            editEmployee(params,this.id).then(res => {
+                                if (res.code === 1) {
+                                    this.$message.success('个人信息修改成功！')
+                                    this.goBack()
+                                } else {
+                                    this.$message.error(res.msg || '操作失败')
+                                }
+                            }).catch(err => {
+                                this.$message.error('请求出错了：' + err)
+                            })
+                        }
+                else {
+                        console.log('error submit!!')
+                        return false
+                    }
+                })
+            },
+
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            },
+
+
+                goBack(){ window.location.href="mine.html"}
+
+        },
+        }
+    )
+</script>
+</body>
+</html>

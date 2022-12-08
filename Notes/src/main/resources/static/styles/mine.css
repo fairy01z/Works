@@ -1,0 +1,142 @@
+
+html{
+    background-image: url("../images/login/login-background.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+
+}
+
+#mineapp{
+    overflow: hidden;
+    height: 100%;
+}
+.text {
+    padding-left: 10px;
+    font-size: 15px;
+    overflow: hidden;
+    white-space: nowrap;
+    width:100%;
+    text-overflow: ellipsis;
+
+
+}
+
+.edit{
+    position: fixed;
+    left: 580px;
+    top:190px;
+}
+.imag{
+    margin-top: 30px;
+    margin-left: 30px;
+}
+
+.note{
+    position: relative;
+    left: 680px;
+    height: 100%;
+}
+.el-form-item {
+    margin-bottom: 30px;
+}
+
+.name-img{
+    text-align: center;
+}
+.clearfix:before,
+.clearfix:after {
+    display: table;
+    content: "";
+    clear:both;
+}
+
+.box-card {
+    margin: 30px;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+
+.name-role {
+    font-size: 16px;
+    padding: 5px;
+    text-align:center;
+}
+.sender{
+    text-align:center;
+}
+.registe-info{
+    text-align: center;
+    padding-top:10px;
+}
+.personal-relation {
+    font-size: 16px;
+    padding: 0px 5px 15px;
+    margin-right: 1px;
+    width: 100%
+}
+.relation-item {
+    padding: 12px;
+}
+.dialog-footer{
+    padding-top:10px ;
+    padding-left: 10%;
+}
+
+.el-row {
+
+
+}
+
+.el-col {
+    border-radius: 4px;
+}
+.bg-purple-dark {
+    background: #99a9bf;
+}
+.bg-purple {
+    background: transparent;
+}
+.bg-purple-light {
+    background: #e5e9f2;
+}
+.grid-content {
+
+    border-radius: 4px;
+    min-height: 36px;
+}
+.row-bg {
+    padding: 10px 0;
+    background-color: #f9fafc;
+}
+
+.time {
+    font-size: 13px;
+    color: #999;
+}
+
+.bottom {
+    margin-top: 5px;
+    line-height: 12px;
+}
+
+.button {
+    float:right;
+}
+
+
+.el-carousel__item:nth-child(2n) {
+background-image: url("../images/img_1.png");
+    background-size: cover;
+    background-position: center;
+}
+
+.el-carousel__item:nth-child(2n+1) {
+    background-image: url("../images/img_2.png");
+}
+
+
+
+
+

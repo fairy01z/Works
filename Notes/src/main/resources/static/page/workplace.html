@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../plugins/element-ui/index.css" />
+    <link rel="stylesheet" href="../styles/common.css" />
+    <link rel="stylesheet" href="../styles/page.css" />
+    <style>
+        #member-app  .notAdmin::after{
+            border: 0 !important;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container" id="member-app">
+    <div class="container">
+        <div class="tableBar">
+            <el-input
+                    v-model="input"
+                    placeholder="输入标题关键词内容"
+                    style="width: 250px"
+                    clearable
+                    @keyup.enter.native="handleQuery"
+            >
+                <i
+                        slot="prefix"
+                        class="el-input__icon el-icon-search"
+                        style="cursor: pointer"
+                        @click="handleQuery"
+                ></i>
+            </el-input>
+
+                <el-button
+                        icon="el-icon-edit"
+                        type="primary"
+                        @click="addHandle('add')"
+                >
+                    新建
+                </el-button>
+
+
+
+        </div>
+        <el-table
+                :data="tableData"
+                stripe
+                class="tableBox"
+        >
+            <el-table-column
+                    prop="noteTitle"
+                    label="标题"
+            ></el-table-column>
+            <el-table-column
+                    prop="introduction"
+                    label="描述"
+            ></el-table-column>
+            <el-table-column
+                    prop="updateTime"
+                    label="日期"
+                    :formatter="dateFormat"
+            ></el-table-column>
+<!--            <el-table-column-->
+<!--                     prop="noteMes"-->
+<!--                    label="内容"-->
+<!--            ></el-table-column>-->
+            <el-table-column>
+                <template slot-scope="scope">
+                    <el-button
+                            type="text"
+                            size="small"
+                            class="blueBug"
+                            @click="EditHandle(scope.row)"
+
+                    >
+                        修改
+                    </el-button>
+
+                    <el-button
+                            type="text"
+                            size="small"
+                            class="delBut non"
+                            @click="deleteHandle(scope.row)"
+                    >
+                        删除
+                    </el-button>
+                </template>
+            </el-table-column>
+
+        </el-table>
+        <el-pagination
+                class="pageList"
+                :page-sizes="[10, 20, 30, 40]"
+                :page-size="pageSize"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="counts"
+                :current-page.sync="page"
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+        ></el-pagination>
+    </div>
+</div>
+<!-- 开发环境版本，包含了有帮助的命令行警告 -->
+<script src="../plugins/vue/vue.js"></script>
+<!-- 引入组件库 -->
+<script src="../plugins/element-ui/index.js"></script>
+<!-- 引入axios -->
+<script src="../plugins/axios/axios.min.js"></script>
+<script src="../js/request.js"></script>
+<script src="../api/member.js"></script>
+<script src="../api/workplace.js"></script>
+
+
+<script>
+    new Vue({
+        el: '#member-app',
+        data() {
+            return {
+                userId:'',
+                input: '',
+                counts: 0,
+                page: 1,
+                pageSize: 10,
+                tableData : [],
+                id : '',
+                status : '',
+            }
+        },
+        computed: {
+            },
+        created() {
+            if (localStorage.getItem('userInfo')!=null) {
+                this.userId = JSON.parse(localStorage.getItem('userInfo')).id
+            }
+            this.init()
+        },
+        mounted() {
+        },
+        methods: {
+            async init () {
+                const params = {
+                    page: this.page,
+                    pageSize: this.pageSize,
+                    name: this.input ? this.input : undefined,
+                    id:this.userId,
+            }
+                await getNoteList(params).then(res => {
+                    if (String(res.code) === '1') {
+                        this.tableData = res.data.records || []
+                        this.counts = res.data.total
+                    }
+                }).catch(err => {
+                    this.$message.error('请求出错了：' + err)
+                })
+            },
+            handleQuery() {
+                this.page = 1;
+                this.init();
+            },
+            addHandle(val){
+                if(val=='add') {
+                    localStorage.setItem('func','add');
+                    window.parent.menuHandle({
+                        id: '2',
+                        url: 'notedetail.html',
+                        name: '新建笔记'
+                    }, true)
+                }
+            },
+            EditHandle(val){
+               localStorage.setItem('noteId',val.id);
+               localStorage.setItem('func','edit');
+               //alert(localStorage.getItem('noteId'));
+               window.parent.menuHandle({
+                    id: '2',
+                    url: 'notedetail.html',
+                    name: '修改笔记'
+                },true)
+           },
+            //删除
+            deleteHandle (val) {
+                localStorage.setItem('noteId',val.id);
+                this.id=val.id;
+                alert("确定要删除小笔记嘛？不确定请点击叉叉哦");
+                    deleteNote(this.id).then(res => {
+                        if (res.code === 1) {
+                            this.$message.success('删除成功！')
+                            this.handleQuery()
+                        } else {
+                            this.$message.error(res.msg || '操作失败')
+                        }
+                    }).catch(err => {
+                        this.$message.error('请求出错了：' + err)
+                    })
+                   location.reload();
+            },
+            handleSizeChange (val) {
+                this.pageSize = val
+                this.init()
+            },
+            handleCurrentChange (val) {
+                this.page = val
+                this.init()
+            },
+            dateFormat:function(row, column) {
+                // 获取单元格数据
+                let data = parseInt(row[column.property])
+                if (data == null) {
+                    return null
+                }
+                let date = new Date(data);
+                let y = date.getFullYear();
+                let MM = date.getMonth() + 1;
+                MM = MM < 10 ? ('0' + MM) : MM;
+                let d = date.getDate();
+                d = d < 10 ? ('0' + d) : d;
+                let h = date.getHours();
+                h = h < 10 ? ('0' + h) : h;
+                let m = date.getMinutes();
+                m = m < 10 ? ('0' + m) : m;
+                let s = date.getSeconds();
+                s = s < 10 ? ('0' + s) : s;
+                return y + '-' + MM + '-' + d + ' ' + h + ':' + m + ':' + s;
+            }
+    }
+        })
+</script>
+</body>
+</html>
